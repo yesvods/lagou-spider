@@ -31,23 +31,27 @@ const {
 
   let start = +new Date()
 
-  // let res = await getIds({
-  //   concurrency: 3
-  // })
+  log('=====Fetching ids=====')
 
-  // log('getIds done')
+  let res = await getIds({
+    concurrency: 3
+  })
 
-  // queue = await jobSpider({
-  //   concurrency: 10
-  // })
+  log('=====Fetching details=====')
+
+  queue = await jobSpider({
+    concurrency: 10
+  })
   
-  // log('jobSpider done')
+  log('=====generating xls=====')
 
-  // let details = load('details', [])
+  let details = load('details', [])
 
   toXls({
     xlsName: 'jobs' 
   })
+
+  log('=====Done, visit xls folder to view result=====')
 
   let costMinTime = Number((+new Date() - start) / 1000 / 60).toFixed(2)
   log(`cost ${costMinTime}分钟`)
