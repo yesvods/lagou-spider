@@ -2,7 +2,7 @@
 
 Wow, A big spider to catch lagou website. Power by [Puppeteet](https://github.com/GoogleChrome/puppeteer).
 
-![](http://ockcz5ezf.bkt.clouddn.com/20170926150635730081006.gif)
+![](https://github.com/yesvods/lagou-spider/blob/master/img/9%E6%9C%88-26-2017%2000-34-17.gif)
 
 ## Get Start
 
