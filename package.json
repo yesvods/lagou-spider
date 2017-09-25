@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/main.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "cheerio": "^1.0.0-rc.2",
+    "delay": "^2.0.0",
     "fs-extra": "^4.0.2",
     "got": "^7.1.0",
     "jsdom": "^11.2.0",
@@ -22,6 +23,7 @@
     "write-json-file": "^2.2.0"
   },
   "dependencies": {
+    "easy-monitor": "^2.1.7",
     "p-queue": "^2.2.0",
     "whatwg-fetch-retry": "^1.1.1"
   }

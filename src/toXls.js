@@ -1,6 +1,8 @@
 const json2xls = require('json2xls')
 const fs = require('fs-extra')
 const {save, load, toName} = require('./io')
+const {log} = require('./utils')
+const path = require('path')
 
 module.exports = async ({xlsName}) => {
   let details = await load('details')
@@ -15,7 +17,7 @@ module.exports = async ({xlsName}) => {
 
   var xls = json2xls(d)
 
-  let xlsPath = `../xls/${toName(xlsName)}.xlsx`
+  let xlsPath = path.join(__dirname, '..', `xls/${toName(xlsName)}.xlsx`)
   await fs.ensureFile(xlsPath)
-  fs.writeFileSync(xlsPath, xls, 'binary')
+  await fs.writeFile(xlsPath, xls, 'binary')
 }

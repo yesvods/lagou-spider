@@ -4,6 +4,8 @@ const cheerio = require('cheerio')
 const _ = require('lodash')
 const pQueue = require('p-queue')
 const pRetry = require('p-retry')
+const delay = require('delay')
+const {contains} = require('sanife')
 
 const {
   log,
@@ -19,50 +21,75 @@ const filterStr = str => {
   return str.trim().replace(/\n(\s)+/g, '')
 }
 
-const grapDetail = (content, id) => {
-  const $ = cheerio.load(content)
-  let title = $('.job-name').text()
-  let salary = $('.job_request .salary').text()
-  let tags = toArray($('.job_request .position-label .labels')).map(o => $(o).text().trim()).join(',')
-  let cFeature = toArray($('.c_feature').children()).map(o => $(o).text().trim())
-  let stage = $('.c_feature .icon-glyph-trend').parent().text()
-  let employee = $('.c_feature .icon-glyph-figure').parent().text().replace('人规模', '')
-  let companyIndex = $('.c_feature .icon-glyph-home').parent().text().replace('公司主页', '')
-  let address = $('.work_addr').text().replace('查看地图', '')
-  let jobAddress = `https://www.lagou.com/jobs/${id}.html`
-  let companyName = $('.job_company .fl').text().replace('拉勾认证企业', '').replace('拉勾未认证企业', '(未认证)')
+const grapDetail = async (page, id) => {
 
-  let detail = {
-    id,
-    title: filterStr(title),
-    salary: filterStr(salary),
-    tags: filterStr(tags),
-    stage: filterStr(stage),
-    employee: filterStr(employee),
-    companyIndex: filterStr(companyIndex),
-    companyName: filterStr(companyName),
-    address: filterStr(address),
-    jobAddress,
+  let url = `https://www.lagou.com/jobs/${id}.html`
+  await page.goto(url)
+
+  let pageInfo = await page.evaluate(() => {
+    let title = document.querySelector('.job-name').innerText
+    let salary = document.querySelector('.job_request .salary').innerText
+    let tags = Array.from(document.querySelectorAll('.job_request .position-label .labels')).map(o => o.innerText.trim()).join(',')
+    let stage = document.querySelector('.c_feature .icon-glyph-trend').parentNode.innerText
+    let employee = document.querySelector('.c_feature .icon-glyph-figure').parentNode.innerText.replace('人规模', '')
+    let companyIndex = document.querySelector('.c_feature .icon-glyph-home').parentNode.innerText.replace('公司主页', '')
+    let address = document.querySelector('.work_addr').innerText.replace('查看地图', '')
+    let companyName = document.querySelector('.job_company .fl').innerText.replace('拉勾认证企业', '').replace('拉勾未认证企业', '(未认证)')
+    let formHead = document.querySelector('.form_head') && document.querySelector('.form_head').innerText || '' 
+    return {
+      title,
+      salary,
+      tags,
+      stage,
+      employee,
+      companyIndex,
+      address,
+      companyName,
+      isValidatePage: formHead.indexOf('密码登录') < 0
+    }
+  })
+
+  if(!pageInfo.isValidatePage){
+    return grapDetail(page, id)
   }
 
-  log(detail.companyName)
+  Object.keys(pageInfo).forEach(key => {
+    if(typeof pageInfo[key] == 'string')
+      pageInfo[key] = pageInfo[key].trim()
+  })
 
-  return detail
+  return pageInfo
 }
 
 let count = 1
 let len = 1
 
+// const fetchPageContent = async (id, page) => {
+//   let url = `https://www.lagou.com/jobs/${id}.html`
+//   await page.goto(url)
+//   const content = await page.content()
+//   if(!content || contains(content, '密码登录')){
+//     await delay(500)
+//     log(`retry ${url}`)
+//     return await fetchPageContent(id, page)
+//   }
+//   return content
+// }
+
 const fetchDetail = async(id) => {
   const page = await browser.newPage()
-  await page.goto(`https://www.lagou.com/jobs/${id}.html`)
 
-  const content = await page.content()
+  const detail = await grapDetail(page, id)
+
   await page.close()
 
-  log(`${len}/${count++}`)
+  if(!detail.companyName){
+    log(`https://www.lagou.com/jobs/${id}.html` ,content)
+  }
 
-  return grapDetail(content, id)
+  log(`${len}/${count++}, ${detail.companyName}`)
+  
+  return detail
 }
 
 module.exports = async({
@@ -77,7 +104,6 @@ module.exports = async({
   let details = await load('details', {})
   let tasks = ids.map(id => {
     return async () => {
-      log(`${ids.length}/${++count}`)
       if(details[id]) return details[id]
       
       let detail = await pRetry(async() => {

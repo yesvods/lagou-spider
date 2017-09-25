@@ -1,3 +1,5 @@
+const easyMonitor = require('easy-monitor');
+// easyMonitor('yoyo');
 const fs = require('fs-extra')
 const {
   contains
@@ -34,7 +36,7 @@ const {
   log('=====Fetching ids=====')
 
   let res = await getIds({
-    concurrency: 3
+    concurrency: 10
   })
 
   log('=====Fetching details=====')
@@ -54,6 +56,6 @@ const {
   log('=====Done, visit xls folder to view result=====')
 
   let costMinTime = Number((+new Date() - start) / 1000 / 60).toFixed(2)
-  log(`cost ${costMinTime}分钟`)
+  log(`=====Cost ${costMinTime} minutes=====`)
   await browser.close()
 })()

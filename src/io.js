@@ -14,7 +14,7 @@ const {
 } = require('./utils')
 
 const toName = name => `${name}_${type}${city}` //名称策略
-const toPath = (name, type = 'json') => path.join(__dirname, tmpFolder, `${toName(name)}.${type}`)
+const toPath = (name, type = 'json') => path.join(__dirname, '..', tmpFolder, `${toName(name)}.${type}`)
 
 const load = async(name, defaultValue, type) => {
   await fs.ensureFile(toPath(name, type))
