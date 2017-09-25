@@ -1,5 +1,3 @@
-const easyMonitor = require('easy-monitor');
-// easyMonitor('yoyo');
 const fs = require('fs-extra')
 const {
   contains
@@ -44,13 +42,13 @@ const {
   queue = await jobSpider({
     concurrency: 10
   })
-  
+
   log('=====generating xls=====')
 
   let details = load('details', [])
 
   toXls({
-    xlsName: 'jobs' 
+    xlsName: 'jobs'
   })
 
   log('=====Done, visit xls folder to view result=====')

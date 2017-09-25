@@ -36,7 +36,7 @@ const grapInfo = content => {
   }
 }
 
-const navToNextPage = async (page, info) => {
+const navToNextPage = async(page, info) => {
   await page.click('.pager_is_current + .pager_not_current')
   await page.waitForNavigation({
     waitUntil: 'networkidle',
@@ -52,7 +52,14 @@ const navToNextPage = async (page, info) => {
   return
 }
 
-const getIdsByUrl = async url => {
+const fetchIds = async({
+  type,
+  city,
+  domain,
+  stage
+}) => {
+  let url = `https://www.lagou.com/jobs/list_${type}?px=new&gx=全职&city=${city}&isShowMoreIndustryField=true&hy=${domain}&jd=${stage}`
+
   const page = await browser.newPage();
   await page.goto(url)
 
@@ -66,7 +73,9 @@ const getIdsByUrl = async url => {
     current = info.currentPage
     totalPage = info.totalPage
 
-    log(`总页数/当前页: ${info.totalPage}/${info.currentPage}, 已爬取公司id数: ${companyIds.length}`)
+    log(`读取公司id.. 职位：${type} 领域：【${city}${domain}${stage}】${info.totalPage}/${info.currentPage}`)
+
+    // log(`总页数/当前页: ${info.totalPage}/${info.currentPage}, 已爬取公司id数: ${companyIds.length}`)
 
     if (current < totalPage) {
       // 单页面导航到下一页
@@ -81,7 +90,7 @@ const getIdsByUrl = async url => {
   return companyIds
 }
 
-module.exports = async ({
+module.exports = async({
   concurrency = 1
 }) => {
   let queue = new pQueue({
@@ -94,10 +103,14 @@ module.exports = async ({
     for (let stage of stages) {
       let queryKey = `${domain}&${stage}`
       if (contains(queryCache, queryKey)) continue
-      let url = `https://www.lagou.com/jobs/list_${type}?px=new&gx=全职&city=${city}&isShowMoreIndustryField=true&hy=${domain}&jd=${stage}`
-      queue.add(async () => {
-        log(`爬取公司id.. 职位：${type} 领域：【${city}${domain}${stage}】`)
-        let list = await pRetry(async () => getIdsByUrl(url), {
+
+      queue.add(async() => {
+        let list = await pRetry(async() => fetchIds({
+          type,
+          city,
+          domain,
+          stage
+        }), {
           retries: 3
         })
         ids = ids.concat(list)
