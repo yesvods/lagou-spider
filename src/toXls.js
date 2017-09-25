@@ -12,7 +12,7 @@ module.exports = async ({xlsName}) => {
     o.salaryEnd = (o.salary.split('-')[1] || "").replace('k', '')
     return o
   }).filter(o => {
-    return o.title && o.salaryStart >= 15 && o.salaryEnd > 25
+    return o.title
   })
 
   var xls = json2xls(d)
